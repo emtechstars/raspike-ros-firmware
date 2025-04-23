@@ -48,7 +48,9 @@ all:
 #
 #  spike-rt関連の設定
 #
-include ../spike-rt.mk
+SPIKE_RT_DIR = ../spike-rt
+SPIKE_RT_KERNELLIB_DIR = $(SPIKE_RT_DIR)/build/obj-primehub_kernel/
+MIROROS_ASP3_TOP_DIR = ../micro-ROS_ASP3
 
 #
 #  ターゲット略称の定義
@@ -71,7 +73,7 @@ endif
 #
 #  ソースファイルのディレクトリの定義
 #
-SRCDIR = $(SPIKE-RT_DIR)/asp3
+SRCDIR = $(SPIKE_RT_DIR)/asp3
 
 #
 #  オブジェクトファイル名の拡張子の設定
@@ -82,7 +84,7 @@ OBJEXT =
 #  カーネルライブラリ（libkernel.a）のディレクトリ名
 #  （カーネルライブラリもmake対象にする時は，空に定義する）
 #
-KERNEL_LIB = $(SPIKE-RT_KERNELLIB_DIR)
+KERNEL_LIB = $(SPIKE_RT_KERNELLIB_DIR)
 
 #
 #  カーネルを関数単位でコンパイルするかどうかの定義
@@ -132,11 +134,6 @@ endif
 #
 OBJDIR = objs
 DEPDIR = objs
-
-#
-# SPIKE-RTのトップディレクトリの定義
-#
-SPIKE_RT_DIR = $(SRCDIR)/..
 
 #
 # ドライバのディレクトリの定義
@@ -225,7 +222,6 @@ endif
 #
 # micro-ROSのためのMakefile
 #
-MIROROS_ASP3_TOP_DIR = ../../../micro-ROS_ASP3
 include $(MIROROS_ASP3_TOP_DIR)/micro_ros_asp/micro_ros_asp.mk
 
 #

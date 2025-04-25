@@ -136,8 +136,8 @@ cell tLogTask LogTask {
 	stackSize = LogTaskStackSize;	/* システムログタスクのスタックサイズ */
 
 	/* シリアルインタフェースドライバとの結合 */
-  cSerialPort        = SerialPortUSB1.eSerialPort;
-  cnSerialPortManage = SerialPortUSB1.enSerialPortManage;
+  cSerialPort        = SerialPortUART_F.eSerialPort;
+  cnSerialPortManage = SerialPortUART_F.enSerialPortManage;
 
 	/* システムログ機能との結合 */
 	cSysLog = SysLog.eSysLog;

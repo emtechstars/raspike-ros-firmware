@@ -49,7 +49,6 @@ all:
 #  spike-rt関連の設定
 #
 SPIKE_RT_DIR = ../spike-rt
-SPIKE_RT_KERNELLIB_DIR = $(SPIKE_RT_DIR)/build/obj-primehub_kernel/
 MIROROS_ASP3_TOP_DIR = ../micro-ROS_ASP3
 
 #
@@ -84,7 +83,7 @@ OBJEXT =
 #  カーネルライブラリ（libkernel.a）のディレクトリ名
 #  （カーネルライブラリもmake対象にする時は，空に定義する）
 #
-KERNEL_LIB = $(SPIKE_RT_KERNELLIB_DIR)
+KERNEL_LIB = 
 
 #
 #  カーネルを関数単位でコンパイルするかどうかの定義

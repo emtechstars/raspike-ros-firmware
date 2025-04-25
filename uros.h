@@ -13,7 +13,7 @@
 #define UROS_PRIORITY	10		/* メインタスクの優先度 */
 #define	UROS_STACK_SIZE	(4096U)	/* メインタスクのスタックサイズ */
 
-#define	UROS_PORTID		4		/* 文字入力するシリアルポートID */
+#define	UROS_PORTID		1		/* 文字入力するシリアルポートID */
 
 static uint8_t text_ET[1][25] = {
   {

@@ -1,0 +1,6 @@
+[submodule "spike-rt"]
+	path = spike-rt
+	url = https://github.com/owhinata/spike-rt.git
+[submodule "libpybricks"]
+	path = libpybricks
+	url = https://github.com/owhinata/pybricks-micropython.git

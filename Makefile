@@ -48,8 +48,10 @@ all:
 #
 #  spike-rt関連の設定
 #
-SPIKE_RT_DIR = ../spike-rt
+SPIKE_RT_DIR = spike-rt
 MIROROS_ASP3_TOP_DIR = ../micro-ROS_ASP3
+
+include spike-rt.mk
 
 #
 #  ターゲット略称の定義

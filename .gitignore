@@ -67,4 +67,6 @@ dkms.conf
 /kernel_cfg.timestamp
 /offset.h
 /offset.timestamp
+/.cache
+/objs/libpybricks
 

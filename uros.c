@@ -71,7 +71,6 @@ rcl_subscription_t motor_speed_subscriber;
 rcl_subscription_t reset_count_subscriber;
 rcl_subscription_t color_mode_subscriber;
 rcl_subscription_t ultrasonic_mode_subscriber;
-rcl_subscription_t imu_init_subscriber;
 // rcl_subscription_t speaker_subscriber;
 
 raspike_uros_msg__msg__SpikeDevStatusMessage device_status;
@@ -115,8 +114,6 @@ int touch_sensor_state;
 int pre_button_state;
 int pre_touch_sensor_state;
 
-SYSTIM *p_systim;
-
 #include "stm32f4xx_hal_conf.h"
 extern volatile HRTCNT hrtcnt_current;
 uint32_t get_time_usec(void) {
@@ -142,7 +139,7 @@ void error_loop(rcl_ret_t temp_rc) {
   }
 }
 
-void get_color_code(void) {
+static void get_color_code(void) {
   pup_color_hsv_t tmp_color_val;
 
   tmp_color_val = pup_color_sensor_color(col, true);
@@ -212,7 +209,7 @@ void get_color_code(void) {
   return;
 }
 
-void get_color_sensor_value(int8_t color_mode) {
+static void get_color_sensor_value(int8_t color_mode) {
   switch (color_mode) {
     pup_color_rgb_t color_rgb;
     pup_color_hsv_t color_hsv;
@@ -249,7 +246,7 @@ void get_color_sensor_value(int8_t color_mode) {
   }
 }
 
-void get_ultrasonic_sensor_value(int8_t ultrasonic_mode) {
+static void get_ultrasonic_sensor_value(int8_t ultrasonic_mode) {
   switch (ultrasonic_mode) {
   case 1:
     send_ultrasonic_value = pup_ultrasonic_sensor_distance(ult);
@@ -295,49 +292,50 @@ static int wait_for_hub_buttons(hub_button_t button_candidates) {
   return button_command;
 }
 
-static void play_speaker(int code) {
-  switch (code) {
-  case 1:
-    hub_speaker_play_tone(NOTE_C4, SOUND_MANUAL_STOP);
-    break;
-  case 2:
-    hub_speaker_play_tone(NOTE_D4, SOUND_MANUAL_STOP);
-    break;
-  case 3:
-    hub_speaker_play_tone(NOTE_E4, SOUND_MANUAL_STOP);
-    break;
-  case 4:
-    hub_speaker_play_tone(NOTE_F4, SOUND_MANUAL_STOP);
-    break;
-  case 5:
-    hub_speaker_play_tone(NOTE_G4, SOUND_MANUAL_STOP);
-    break;
-  case 6:
-    hub_speaker_play_tone(NOTE_A4, SOUND_MANUAL_STOP);
-    break;
-  case 7:
-    hub_speaker_play_tone(NOTE_B4, SOUND_MANUAL_STOP);
-    break;
-  case 8:
-    hub_speaker_play_tone(NOTE_C5, SOUND_MANUAL_STOP);
-    break;
-  case 9:
-    hub_speaker_play_tone(NOTE_D5, SOUND_MANUAL_STOP);
-    break;
-  case 10:
-    hub_speaker_play_tone(NOTE_E5, SOUND_MANUAL_STOP);
-    break;
-  default:
-    break;
-  }
-  return;
-}
+// static void play_speaker(int code) {
+//   switch (code) {
+//   case 1:
+//     hub_speaker_play_tone(NOTE_C4, SOUND_MANUAL_STOP);
+//     break;
+//   case 2:
+//     hub_speaker_play_tone(NOTE_D4, SOUND_MANUAL_STOP);
+//     break;
+//   case 3:
+//     hub_speaker_play_tone(NOTE_E4, SOUND_MANUAL_STOP);
+//     break;
+//   case 4:
+//     hub_speaker_play_tone(NOTE_F4, SOUND_MANUAL_STOP);
+//     break;
+//   case 5:
+//     hub_speaker_play_tone(NOTE_G4, SOUND_MANUAL_STOP);
+//     break;
+//   case 6:
+//     hub_speaker_play_tone(NOTE_A4, SOUND_MANUAL_STOP);
+//     break;
+//   case 7:
+//     hub_speaker_play_tone(NOTE_B4, SOUND_MANUAL_STOP);
+//     break;
+//   case 8:
+//     hub_speaker_play_tone(NOTE_C5, SOUND_MANUAL_STOP);
+//     break;
+//   case 9:
+//     hub_speaker_play_tone(NOTE_D5, SOUND_MANUAL_STOP);
+//     break;
+//   case 10:
+//     hub_speaker_play_tone(NOTE_E5, SOUND_MANUAL_STOP);
+//     break;
+//   default:
+//     break;
+//   }
+//   return;
+// }
 
 void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   float hub_angular_velocity[3];
 
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
+    device_status.timestamp_usec = get_time_usec();
     /*imu*/
     hub_imu_get_angular_velocity(hub_angular_velocity);
     for (int i = 0; i < 3; ++i) {
@@ -348,19 +346,25 @@ void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
       device_status.linear_acceleration[i] = hub_angular_velocity[i];
     }
     /*color*/
-    get_color_sensor_value(current_color_mode);
-    device_status.color_mode_id = send_color_mode_id;
-    device_status.color_sensor_value_1 = send_color_value_1;
-    device_status.color_sensor_value_2 = send_color_value_2;
-    device_status.color_sensor_value_3 = send_color_value_3;
+    if (col) {
+      get_color_sensor_value(current_color_mode);
+      device_status.color_mode_id = send_color_mode_id;
+      device_status.color_sensor_value_1 = send_color_value_1;
+      device_status.color_sensor_value_2 = send_color_value_2;
+      device_status.color_sensor_value_3 = send_color_value_3;
+    }
     /*ultrasonic*/
-    get_ultrasonic_sensor_value(current_ultrasonic_mode);
-    device_status.ultrasonic_mode_id = send_ultrasonic_mode_id;
-    device_status.ultrasonic_sensor = send_ultrasonic_value;
+    if (ult) {
+      get_ultrasonic_sensor_value(current_ultrasonic_mode);
+      device_status.ultrasonic_mode_id = send_ultrasonic_mode_id;
+      device_status.ultrasonic_sensor = send_ultrasonic_value;
+    }
     /*motor*/
-    device_status.arm_count = pup_motor_get_count(a_motor);
-    device_status.right_count = pup_motor_get_count(r_motor);
-    device_status.left_count = pup_motor_get_count(l_motor);
+    if (a_motor && r_motor && l_motor) {
+      device_status.arm_count = pup_motor_get_count(a_motor);
+      device_status.right_count = pup_motor_get_count(r_motor);
+      device_status.left_count = pup_motor_get_count(l_motor);
+    }
 
     RCSOFTCHECK(rcl_publish(&dev_status_publisher, &device_status, NULL));
 
@@ -382,22 +386,22 @@ void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     pre_touch_sensor_state = touch_sensor_state;
 
     /*power_status_publisher*/
-    timer_count++;
-    if (timer_count == 10) { // 100ms周期
-      power_msg.voltage = hub_battery_get_voltage();
-      power_msg.current = hub_battery_get_current();
-      RCSOFTCHECK(rcl_publish(&power_status_publisher, &power_msg, NULL));
-      timer_count = 0;
-    }
+    // timer_count++;
+    // if (timer_count == 10) { // 100ms周期
+    //   power_msg.voltage = hub_battery_get_voltage();
+    //   power_msg.current = hub_battery_get_current();
+    //   RCSOFTCHECK(rcl_publish(&power_status_publisher, &power_msg, NULL));
+    //   timer_count = 0;
+    // }
 
-    if (speaker_enabled) { // speaker停止処理
-      if (speaker_play_duration == speaker_cnt) {
-        hub_speaker_stop();
-        speaker_enabled = false;
-      } else {
-        speaker_cnt++;
-      }
-    }
+    // if (speaker_enabled) { // speaker停止処理
+    //   if (speaker_play_duration == speaker_cnt) {
+    //     hub_speaker_stop();
+    //     speaker_enabled = false;
+    //   } else {
+    //     speaker_cnt++;
+    //   }
+    // }
   }
 }
 
@@ -443,18 +447,18 @@ void reset_count_callback(const void *msgin) {
     pup_motor_reset_count(r_motor);
 }
 
-void speaker_callback(const void *msgin) {
-  const raspike_uros_msg__msg__SpeakerMessage *speaker_tone_val =
-      (const raspike_uros_msg__msg__SpeakerMessage *)msgin;
-
-  temp_speaker_frequency = speaker_tone_val->tone;
-  if (speaker_tone_val->tone <= 10 && speaker_tone_val->tone >= 1) {
-    play_speaker(speaker_tone_val->tone);
-    speaker_play_duration = (speaker_tone_val->duration / 10);
-    speaker_enabled = true;
-    speaker_cnt = 0;
-  }
-}
+// void speaker_callback(const void *msgin) {
+//   const raspike_uros_msg__msg__SpeakerMessage *speaker_tone_val =
+//       (const raspike_uros_msg__msg__SpeakerMessage *)msgin;
+// 
+//   temp_speaker_frequency = speaker_tone_val->tone;
+//   if (speaker_tone_val->tone <= 10 && speaker_tone_val->tone >= 1) {
+//     play_speaker(speaker_tone_val->tone);
+//     speaker_play_duration = (speaker_tone_val->duration / 10);
+//     speaker_enabled = true;
+//     speaker_cnt = 0;
+//   }
+// }
 
 void color_mode_callback(const void *msgin) {
   const std_msgs__msg__Int8 *color_sensor_mode =
@@ -468,15 +472,6 @@ void ultrasonic_mode_callback(const void *msgin) {
       (const std_msgs__msg__Int8 *)msgin;
 
   current_ultrasonic_mode = ultrasonic_sensor_mode->data;
-}
-
-void imu_init_callback(const void *msgin) {
-  const std_msgs__msg__Bool *imu_init = (const std_msgs__msg__Bool *)msgin;
-
-  if (imu_init->data) {
-    x_angle = 0; // 角度をリセット
-    z_angle = 0;
-  }
 }
 
 /*
@@ -521,28 +516,31 @@ void uros_task(intptr_t exinf) {
       "spike_power_status"));
 
   // Create subscriber
-  RCCHECK(rclc_subscription_init_best_effort(
-      &motor_speed_subscriber, &node,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(raspike_uros_msg, msg, MotorSpeedMessage),
-      "wheel_motor_speeds"));
-  RCCHECK(rclc_subscription_init_default(
-      &reset_count_subscriber, &node,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(raspike_uros_msg, msg, MotorResetMessage),
-      "motor_reset_count"));
+  if (a_motor && r_motor && l_motor) {
+    RCCHECK(rclc_subscription_init_best_effort(
+        &motor_speed_subscriber, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(raspike_uros_msg, msg, MotorSpeedMessage),
+        "wheel_motor_speeds"));
+    RCCHECK(rclc_subscription_init_default(
+        &reset_count_subscriber, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(raspike_uros_msg, msg, MotorResetMessage),
+        "motor_reset_count"));
+  }
   // RCCHECK(rclc_subscription_init_default(
   //     &speaker_subscriber, &node,
   //     ROSIDL_GET_MSG_TYPE_SUPPORT(raspike_uros_msg, msg, SpeakerMessage),
   //     "speaker_tone"));
-  RCCHECK(rclc_subscription_init_best_effort(
-      &color_mode_subscriber, &node,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int8), "color_sensor_mode"));
-  RCCHECK(rclc_subscription_init_default(
-      &ultrasonic_mode_subscriber, &node,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int8),
-      "ultrasonic_sensor_mode"));
-  RCCHECK(rclc_subscription_init_default(
-      &imu_init_subscriber, &node,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool), "imu_init"));
+  if (col) {
+    RCCHECK(rclc_subscription_init_best_effort(
+        &color_mode_subscriber, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int8), "color_sensor_mode"));
+  }
+  if (ult) {
+    RCCHECK(rclc_subscription_init_default(
+        &ultrasonic_mode_subscriber, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int8),
+        "ultrasonic_sensor_mode"));
+  }
 
   // Create timer,
   rcl_timer_t timer;
@@ -551,66 +549,83 @@ void uros_task(intptr_t exinf) {
 
   // Create executor
   rclc_executor_t executor;
-  RCCHECK(rclc_executor_init(&executor, &support.context, 7, &allocator));
+  uint32_t executor_count = 1;
+  if (a_motor && r_motor && l_motor) {
+    executor_count += 2;
+  }
+  if (col) {
+    executor_count += 1;
+  }
+  if (ult) {
+    executor_count += 1;
+  }
+  RCCHECK(rclc_executor_init(&executor, &support.context, executor_count, &allocator));
   RCCHECK(rclc_executor_add_timer(&executor, &timer));
-  RCCHECK(rclc_executor_add_subscription(&executor, &motor_speed_subscriber,
-                                         &motor_speed, &motor_speed_callback,
-                                         ON_NEW_DATA));
-  RCCHECK(rclc_executor_add_subscription(&executor, &reset_count_subscriber,
-                                         &reset_count, &reset_count_callback,
-                                         ON_NEW_DATA));
+  if (a_motor && r_motor && l_motor) {
+    RCCHECK(rclc_executor_add_subscription(&executor, &motor_speed_subscriber,
+                                           &motor_speed, &motor_speed_callback,
+                                           ON_NEW_DATA));
+    RCCHECK(rclc_executor_add_subscription(&executor, &reset_count_subscriber,
+                                           &reset_count, &reset_count_callback,
+                                           ON_NEW_DATA));
+  }
   // RCCHECK(rclc_executor_add_subscription(&executor, &speaker_subscriber,
   //                                        &speaker_tone_val,
   //                                        &speaker_callback, ON_NEW_DATA));
-  RCCHECK(rclc_executor_add_subscription(&executor, &color_mode_subscriber,
-                                         &color_sensor_mode,
-                                         &color_mode_callback, ON_NEW_DATA));
-  RCCHECK(rclc_executor_add_subscription(
-      &executor, &ultrasonic_mode_subscriber, &ultrasonic_sensor_mode,
-      &ultrasonic_mode_callback, ON_NEW_DATA));
-  RCCHECK(rclc_executor_add_subscription(&executor, &imu_init_subscriber,
-                                         &imu_init, &imu_init_callback,
-                                         ON_NEW_DATA));
+  if (col) {
+    RCCHECK(rclc_executor_add_subscription(&executor, &color_mode_subscriber,
+                                           &color_sensor_mode,
+                                           &color_mode_callback, ON_NEW_DATA));
+  }
+  if (ult) {
+    RCCHECK(rclc_executor_add_subscription(
+        &executor, &ultrasonic_mode_subscriber, &ultrasonic_sensor_mode,
+        &ultrasonic_mode_callback, ON_NEW_DATA));
+  }
 
   syslog(LOG_NOTICE, "miro-ROS main task : init done.");
 
-  pup_color_sensor_detectable_colors(
-      7,
-      raspike_rt_detectable_color); // EV3-RTのAPIに合わせる場合はpup_color_sensor_detectable_colors(8,
-                                    // detectable_color_for_EV3)
+  if (col) {
+    pup_color_sensor_detectable_colors(
+        7,
+        raspike_rt_detectable_color); // EV3-RTのAPIに合わせる場合はpup_color_sensor_detectable_colors(8,
+                                      // detectable_color_for_EV3)
+  }
 
   /*set up right motor*/
-  for (int i = 0; i < 10; i++) {
-    bool reset_count = true;
-    r_err = pup_motor_setup(r_motor, PUP_DIRECTION_CLOCKWISE, true);
-    pup_motor_reset_count(r_motor);
-    if (r_err != PBIO_ERROR_AGAIN) {
-      break;
+  if (a_motor && r_motor && l_motor) {
+    for (int i = 0; i < 10; i++) {
+      bool reset_count = true;
+      r_err = pup_motor_setup(r_motor, PUP_DIRECTION_CLOCKWISE, true);
+      pup_motor_reset_count(r_motor);
+      if (r_err != PBIO_ERROR_AGAIN) {
+        break;
+      }
+      // Set up failed -> Wait 1s and ry one more
+      dly_tsk(1000000);
     }
-    // Set up failed -> Wait 1s and ry one more
-    dly_tsk(1000000);
-  }
 
-  /*set up left motor*/
-  for (int i = 0; i < 10; i++) {
-    l_err = pup_motor_setup(l_motor, PUP_DIRECTION_COUNTERCLOCKWISE, true);
-    pup_motor_reset_count(l_motor);
-    if (l_err != PBIO_ERROR_AGAIN) {
-      break;
+    /*set up left motor*/
+    for (int i = 0; i < 10; i++) {
+      l_err = pup_motor_setup(l_motor, PUP_DIRECTION_COUNTERCLOCKWISE, true);
+      pup_motor_reset_count(l_motor);
+      if (l_err != PBIO_ERROR_AGAIN) {
+        break;
+      }
+      // Set up failed -> Wait 1s and ry one more
+      dly_tsk(1000000);
     }
-    // Set up failed -> Wait 1s and ry one more
-    dly_tsk(1000000);
-  }
 
-  /*set up arm motor*/
-  for (int i = 0; i < 10; i++) {
-    a_err = pup_motor_setup(a_motor, PUP_DIRECTION_CLOCKWISE, true);
-    pup_motor_reset_count(a_motor);
-    if (a_err != PBIO_ERROR_AGAIN) {
-      break;
+    /*set up arm motor*/
+    for (int i = 0; i < 10; i++) {
+      a_err = pup_motor_setup(a_motor, PUP_DIRECTION_CLOCKWISE, true);
+      pup_motor_reset_count(a_motor);
+      if (a_err != PBIO_ERROR_AGAIN) {
+        break;
+      }
+      // Set up failed -> Wait 1s and ry one more
+      dly_tsk(1000000);
     }
-    // Set up failed -> Wait 1s and ry one more
-    dly_tsk(1000000);
   }
 
   hub_imu_init();
@@ -629,7 +644,9 @@ void uros_task(intptr_t exinf) {
 
   hub_display_off();
   hub_display_orientation(PBIO_SIDE_TOP);
-  pup_ultrasonic_sensor_light_set(ult, 60, 60, 60, 60);
+  if (ult) {
+    pup_ultrasonic_sensor_light_set(ult, 60, 60, 60, 60);
+  }
   hub_display_image(text_ET); //ディスプレイ表示
   hub_light_off();
 
@@ -641,11 +658,16 @@ void uros_task(intptr_t exinf) {
   RCCHECK(rcl_publisher_fini(&button_status_publisher, &node));
   RCCHECK(rcl_publisher_fini(&dev_status_publisher, &node));
   RCCHECK(rcl_publisher_fini(&power_status_publisher, &node));
-  RCCHECK(rcl_subscription_fini(&motor_speed_subscriber, &node));
-  RCCHECK(rcl_subscription_fini(&reset_count_subscriber, &node));
-  RCCHECK(rcl_subscription_fini(&color_mode_subscriber, &node));
-  RCCHECK(rcl_subscription_fini(&ultrasonic_mode_subscriber, &node));
+  if (a_motor && r_motor && l_motor) {
+    RCCHECK(rcl_subscription_fini(&motor_speed_subscriber, &node));
+    RCCHECK(rcl_subscription_fini(&reset_count_subscriber, &node));
+  }
+  if (col) {
+    RCCHECK(rcl_subscription_fini(&color_mode_subscriber, &node));
+  }
+  if (ult) {
+    RCCHECK(rcl_subscription_fini(&ultrasonic_mode_subscriber, &node));
+  }
   // RCCHECK(rcl_subscription_fini(&speaker_subscriber, &node));
-  RCCHECK(rcl_subscription_fini(&imu_init_subscriber, &node));
   RCCHECK(rcl_node_fini(&node));
 }

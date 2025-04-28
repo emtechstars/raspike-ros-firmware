@@ -120,6 +120,7 @@ void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
 
   RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
+    device_status.timestamp_usec = get_time_usec();
     /*imu*/
     hub_imu_get_angular_velocity(hub_angular_velocity);
     for (int i = 0; i < 3; ++i) {

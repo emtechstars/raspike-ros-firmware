@@ -95,3 +95,6 @@ libpybricks.a: $(PYBRICKS_OBJDIR)/libpybricks.a
 .PHONY: $(PYBRICKS_OBJDIR)/libpybricks.a
 $(PYBRICKS_OBJDIR)/libpybricks.a: $(PYBRICKS_IMU_CALIB_HEADER)
 	$(MAKE) -C $(PYBRICKS_BRICK_DIR) BUILD=$(PYBRICKS_OBJDIR)
+
+clean_pybricks:
+	$(MAKE) -C $(PYBRICKS_BRICK_DIR) clean BUILD=$(PYBRICKS_OBJDIR)

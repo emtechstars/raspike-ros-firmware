@@ -503,6 +503,12 @@ $(OBJNAME).srec: $(OBJFILE)
 	$(OBJCOPY) -O srec -S $(OBJFILE) $(OBJNAME).srec
 
 #
+#  dfuファイルの生成
+#
+$(OBJNAME).dfu: $(OBJNAME).bin
+	python3 spike-rt/asp3/target/primehub_gcc/tools/dfu.py -b 0x8008000:$(OBJNAME).bin $(OBJNAME).dfu
+
+#
 #  エラーチェック処理
 #
 .PHONY: check

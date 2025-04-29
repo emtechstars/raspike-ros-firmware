@@ -54,6 +54,7 @@ dkms.conf
 #
 /asp
 /asp.bin
+/asp.dfu
 /cfg1_out
 /cfg1_out.c
 /cfg1_out.db

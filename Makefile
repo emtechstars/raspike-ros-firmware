@@ -49,7 +49,7 @@ all:
 #  spike-rt関連の設定
 #
 SPIKE_RT_DIR = spike-rt
-MIROROS_ASP3_TOP_DIR = ../micro-ROS_ASP3
+MICROROS_LIB_DIR = libmicroros/firmware/build
 
 include spike-rt.mk
 
@@ -206,7 +206,7 @@ ifdef USE_CXX
 	APPL_CXXOBJS := uros_raspike-rt.o
 	APPL_COBJS :=
 else
-	APPL_COBJS := uros_raspike-rt.o uros.o
+	APPL_COBJS := uros_raspike-rt.o uros.o micro_ros_asp.o
 endif
 APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o
 APPL_CFLAGS := $(APPL_CFLAGS)
@@ -223,7 +223,53 @@ endif
 #
 # micro-ROSのためのMakefile
 #
-include $(MIROROS_ASP3_TOP_DIR)/micro_ros_asp/micro_ros_asp.mk
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/action_msgs/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/actionlib_msgs/
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/builtin_interfaces/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/composition_interfaces/i
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/diagnostic_msgs/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/example_interfaces/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/geometry_msgs/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/libyaml_vendor/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/lifecycle_msgs/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/micro_ros_msgs/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/micro_ros_utilities/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/microcdr/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/microxrcedds_client/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/nav_msgs/
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/rcl/
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/rcl_action/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/rcl_interfaces/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/rcl_lifecycle/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/rcl_logging_interface/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/rclc/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/rclc_lifecycle/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/rclc_parameter/
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/rcutils/
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/rmw/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/rmw_microxrcedds/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/rosgraph_msgs/
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/rosidl_runtime_c/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/rosidl_typesupport_c/
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/rosidl_typesupport_interface/
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/rosidl_typesupport_introspection_c/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/rosidl_typesupport_microxrcedds_c/
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/sensor_msgs/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/shape_msgs/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/statistics_msgs/
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/std_msgs/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/std_srvs/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/stereo_msgs/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/test_msgs/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/tracetools/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/trajectory_msgs/
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/unique_identifier_msgs/
+# INCLUDES += -I$(MICROROS_LIB_DIR)/include/visualization_msgs/
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/raspike_uros_msg
+INCLUDES += -I$(MICROROS_LIB_DIR)/include/
+
+LDFLAGS += -L$(MICROROS_LIB_DIR)
+LIBS += -lmicroros
 
 #
 #  システムサービスに関する定義

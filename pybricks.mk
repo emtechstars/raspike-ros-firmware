@@ -14,6 +14,7 @@ PYBRICKS_OBJDIR := $(PYBRICKS_TOP_DIR)/objs/libpybricks
 
 # PYBRICKS_SPIKE_ID :=
 PYBRICKS_SPIKE_ID := spike1_
+# PYBRICKS_USE_PORT_F_AS_DEBUG_UART := 1
 
 ifeq ("$(wildcard $(PYBRICKS_DIR)/README.md)","")
 $(info GIT cloning libpybricks submodule)
@@ -94,7 +95,8 @@ libpybricks.a: $(PYBRICKS_OBJDIR)/libpybricks.a
 # recipe for building pybricks
 .PHONY: $(PYBRICKS_OBJDIR)/libpybricks.a
 $(PYBRICKS_OBJDIR)/libpybricks.a: $(PYBRICKS_IMU_CALIB_HEADER)
-	$(MAKE) -C $(PYBRICKS_BRICK_DIR) BUILD=$(PYBRICKS_OBJDIR)
+	$(MAKE) -C $(PYBRICKS_BRICK_DIR) BUILD=$(PYBRICKS_OBJDIR) \
+		PYBRICKS_USE_PORT_F_AS_DEBUG_UART=$(PYBRICKS_USE_PORT_F_AS_DEBUG_UART)
 
 clean_pybricks:
 	$(MAKE) -C $(PYBRICKS_BRICK_DIR) clean BUILD=$(PYBRICKS_OBJDIR)

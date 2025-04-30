@@ -20,6 +20,7 @@
 #include "spike/pup/colorsensor.h"
 #include "spike/pup/motor.h"
 #include "spike/pup/ultrasonicsensor.h"
+#include "spike/pup/forcesensor.h"
 #include <pbdrv/battery.h>
 #include <spike/hub/battery.h>
 #include <spike/hub/display.h>
@@ -92,6 +93,7 @@ static pup_motor_t *r_motor; // right motor
 static pup_motor_t *l_motor; // left motor
 static pup_device_t *col;    // color sensor
 static pup_device_t *ult;    // ultrasonic sensor
+static pup_device_t *force;  // force sensor
 int16_t send_color_value_1;
 int16_t send_color_value_2;
 int16_t send_color_value_3;
@@ -278,7 +280,12 @@ static int wait_for_hub_buttons(hub_button_t button_candidates) {
   hub_button_t pressed_button;
   int button_command = 0;
 
-  pressed_button = hub_buttons_pressed(button_candidates);
+  if (force) {
+    bool touched = pup_force_sensor_touched(force);
+    pressed_button = touched ? HUB_BUTTON_CENTER : 0;
+  } else {
+    pressed_button = hub_buttons_pressed(button_candidates);
+  }
 
   if (pressed_button & HUB_BUTTON_BT)
     return 2048;
@@ -371,13 +378,14 @@ void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     /*button_status_publisher*/
     button_state = wait_for_hub_buttons(HUB_BUTTON_RIGHT | HUB_BUTTON_LEFT |
                                         HUB_BUTTON_CENTER);
-    touch_sensor_state = wait_for_hub_buttons(HUB_BUTTON_BT);
     if (pre_button_state != button_state) {
       hub_button_msg.button = button_state;
       RCCHECK(rcl_publish(&button_status_publisher,
                           (const void *)&hub_button_msg, NULL));
     }
     pre_button_state = button_state;
+
+    touch_sensor_state = wait_for_hub_buttons(HUB_BUTTON_BT);
     if (pre_touch_sensor_state != touch_sensor_state) {
       hub_button_msg.touch_sensor = touch_sensor_state;
       RCCHECK(rcl_publish(&button_status_publisher,
@@ -386,13 +394,13 @@ void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     pre_touch_sensor_state = touch_sensor_state;
 
     /*power_status_publisher*/
-    // timer_count++;
-    // if (timer_count == 10) { // 100ms周期
-    //   power_msg.voltage = hub_battery_get_voltage();
-    //   power_msg.current = hub_battery_get_current();
-    //   RCSOFTCHECK(rcl_publish(&power_status_publisher, &power_msg, NULL));
-    //   timer_count = 0;
-    // }
+    timer_count++;
+    if (timer_count == 10) { // 100ms周期
+      power_msg.voltage = hub_battery_get_voltage();
+      power_msg.current = hub_battery_get_current();
+      RCSOFTCHECK(rcl_publish(&power_status_publisher, &power_msg, NULL));
+      timer_count = 0;
+    }
 
     // if (speaker_enabled) { // speaker停止処理
     //   if (speaker_play_duration == speaker_cnt) {
@@ -486,6 +494,9 @@ void uros_task(intptr_t exinf) {
   l_motor = pup_motor_get_device(PBIO_PORT_ID_E);
   col = pup_color_sensor_get_device(PBIO_PORT_ID_C);
   ult = pup_ultrasonic_sensor_get_device(PBIO_PORT_ID_D);
+#if !PBIO_CONFIG_USE_PORT_F_AS_ASP3_DEBUG_UART
+  force = pup_force_sensor_get_device(PBIO_PORT_ID_F);
+#endif
 
   // Set transports
   set_microros_transports(UROS_PORTID);

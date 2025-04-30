@@ -21,7 +21,7 @@ import("syssvc/tBanner.cdl");
 /*
  *  ターゲット依存部の取り込み
  */
-import("target.cdl");
+import("target_debug.cdl");
 
 import("serial/tSIOAsyncPortTest.cdl");
 
@@ -54,7 +54,7 @@ cell tSerialAdapter SerialAdapter {
   cSerialPort[0] = SerialPortUSB1.eSerialPort;
   cSerialPort[1] = SerialPortBluetooth1.eSerialPort;
   cSerialPort[2] = SerialPortTest1.eSerialPort;
-  //cSerialPort[3] = SerialPortUART_F.eSerialPort;
+  cSerialPort[3] = SerialPortUART_F.eSerialPort;
 };
 
 /*
@@ -84,14 +84,14 @@ cell tSysLog SysLog {
  *  スドライバを使用するため，それも外すことが必要である．また，シリア
  *  ルインタフェースドライバのアダプタも外さなければならない．
  */
-//cell tSerialPort SerialPortUART_F {
-//	receiveBufferSize = 256;			/* 受信バッファのサイズ */
-//	sendBufferSize    = 256;			/* 送信バッファのサイズ */
-//
-//	/* ターゲット依存部との結合 */
-//	cSIOPort = SIOPortTarget1.eSIOPort;
-//	eiSIOCBR <= SIOPortTarget1.ciSIOCBR;	/* コールバック */
-//};
+cell tSerialPort SerialPortUART_F {
+	receiveBufferSize = 256;			/* 受信バッファのサイズ */
+	sendBufferSize    = 256;			/* 送信バッファのサイズ */
+
+	/* ターゲット依存部との結合 */
+	cSIOPort = SIOPortTarget1.eSIOPort;
+	eiSIOCBR <= SIOPortTarget1.ciSIOCBR;	/* コールバック */
+};
 
 cell tSerialAsyncPort SerialPortUSB1 {
   receiveBufferSize = 256;      /* 受信バッファのサイズ */
@@ -130,20 +130,20 @@ cell tSerialAsyncPort SerialPortTest1 {
  *  ばよい．
  *  TODO: LogTaskの優先度を上げても，USB経由での出力がうまく動作するようにする．
  */
-//cell tLogTask LogTask {
-//  priority  = 4;          /* システムログタスクの優先度 */
-//	stackSize = LogTaskStackSize;	/* システムログタスクのスタックサイズ */
-//
-//	/* シリアルインタフェースドライバとの結合 */
-//  cSerialPort        = SerialPortUART_F.eSerialPort;
-//  cnSerialPortManage = SerialPortUART_F.enSerialPortManage;
-//
-//	/* システムログ機能との結合 */
-//	cSysLog = SysLog.eSysLog;
-//
-//	/* 低レベル出力との結合 */
-//	cPutLog = PutLogTarget.ePutLog;
-//};
+cell tLogTask LogTask {
+  priority  = 4;          /* システムログタスクの優先度 */
+	stackSize = LogTaskStackSize;	/* システムログタスクのスタックサイズ */
+
+	/* シリアルインタフェースドライバとの結合 */
+  cSerialPort        = SerialPortUART_F.eSerialPort;
+  cnSerialPortManage = SerialPortUART_F.enSerialPortManage;
+
+	/* システムログ機能との結合 */
+	cSysLog = SysLog.eSysLog;
+
+	/* 低レベル出力との結合 */
+	cPutLog = PutLogTarget.ePutLog;
+};
 
 /*
  *		カーネル起動メッセージ出力の組上げ記述

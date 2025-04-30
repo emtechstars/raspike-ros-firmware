@@ -198,7 +198,13 @@ CFLAGS = $(COPTS) $(CDEFS) $(INCLUDES)
 APPLNAME = uros_raspike-rt
 APPLDIRS = .
 APPL_CFG = uros_raspike-rt.cfg
+#APPL_CDL = uros_raspike-rt.cdl
+ifeq ($(PYBRICKS_USE_PORT_F_AS_DEBUG_UART), 1)
+APPL_CDL = uros_raspike-rt_debug.cdl
+CFLAGS += -DPYBRICKS_USE_PORT_F_AS_DEBUG_UART
+else
 APPL_CDL = uros_raspike-rt.cdl
+endif
 
 APPL_DIRS := $(APPLDIRS) $(SRCDIR)/library
 APPL_ASMOBJS :=
@@ -507,6 +513,10 @@ $(OBJNAME).srec: $(OBJFILE)
 #
 $(OBJNAME).dfu: $(OBJNAME).bin
 	python3 spike-rt/asp3/target/primehub_gcc/tools/dfu.py -b 0x8008000:$(OBJNAME).bin $(OBJNAME).dfu
+	@echo "******************************************************"
+	@echo " To write image,"
+	@echo " python pydfu.py -u asp.dfu --vid 0x0694 --pid 0x0008"
+	@echo "******************************************************"
 
 #
 #  エラーチェック処理

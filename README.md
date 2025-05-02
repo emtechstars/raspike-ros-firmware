@@ -47,3 +47,4 @@ python3 spike-rt/asp3/target/primehub_gcc/tools/dfu.py -b 0x8008000:micro-ROS_AS
 git clone https://github.com/micropython/micropython.git -b v1.23.0
 python micropython/tools/pydfu.py -u asp.dfu --vid 0x0694 --pid 0x0008
 ```
+## test

@@ -98,6 +98,21 @@ docker build --network host -t ubuntu-imu_tk .
 
 <details><summary>SPIKE HubをPCにUSB接続し、micro-ROS Agentを起動します。</summary>
 
+
+micro-ROS Agentのビルド方法
+```bash
+git clone -b humble https://github.com/micro-ROS/micro_ros_setup.git src/micro_ros_setup
+sudo rosdep init
+rosdep update && rosdep install --from-paths src --ignore-src -y
+colcon build --symlink-install
+source install/setup.bash
+
+ros2 run micro_ros_setup create_agent_ws.sh
+ros2 run micro_ros_setup build_agent.sh
+source install/setup.bash
+```
+
+micro-ROS Agentの起動
 ```bash
 $ cd ros2_ws
 $ . install/setup.bash

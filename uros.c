@@ -489,13 +489,13 @@ void uros_task(intptr_t exinf) {
   syslog(LOG_NOTICE, "miro-ROS main task : start");
 
   /*get device pointers*/
-  a_motor = pup_motor_get_device(PBIO_PORT_ID_A);
-  r_motor = pup_motor_get_device(PBIO_PORT_ID_B);
-  l_motor = pup_motor_get_device(PBIO_PORT_ID_E);
-  col = pup_color_sensor_get_device(PBIO_PORT_ID_C);
-  ult = pup_ultrasonic_sensor_get_device(PBIO_PORT_ID_D);
+  a_motor = pup_motor_get_device(PBIO_PORT_ID_C);
+  r_motor = pup_motor_get_device(PBIO_PORT_ID_A);
+  l_motor = pup_motor_get_device(PBIO_PORT_ID_B);
+  col = pup_color_sensor_get_device(PBIO_PORT_ID_E);
+  ult = pup_ultrasonic_sensor_get_device(PBIO_PORT_ID_F);
 #if !PBIO_CONFIG_USE_PORT_F_AS_ASP3_DEBUG_UART
-  force = pup_force_sensor_get_device(PBIO_PORT_ID_F);
+  force = pup_force_sensor_get_device(PBIO_PORT_ID_D);
 #endif
 
   // Set transports

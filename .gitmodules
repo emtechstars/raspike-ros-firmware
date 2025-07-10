@@ -1,9 +1,9 @@
 [submodule "spike-rt"]
 	path = spike-rt
-	url = https://github.com/owhinata/spike-rt.git
+	url = https://github.com/emtechstars/spike-rt.git
 [submodule "libpybricks"]
 	path = libpybricks
-	url = https://github.com/owhinata/pybricks-micropython.git
+	url = https://github.com/emtechstars/pybricks-micropython.git
 [submodule "libmicroros/uros_ws/src/micro_ros_setup"]
 	path = libmicroros/uros_ws/src/micro_ros_setup
 	url = https://github.com/micro-ROS/micro_ros_setup.git

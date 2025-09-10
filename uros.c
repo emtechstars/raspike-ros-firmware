@@ -110,7 +110,6 @@ int16_t speaker_play_duration = 0;
 int16_t speaker_cnt = 0;
 float x_angle = 0;
 float z_angle = 0;
-float angv_offset[3] = {0};   // ジャイロセンサ角速度バイアス補正
 
 int button_state;
 int touch_sensor_state;
@@ -140,28 +139,6 @@ void error_loop(rcl_ret_t temp_rc) {
   while (1) {
     dly_tsk(100);
   }
-}
-
-static void calib_angv_offset(float offset[3])
-{
-  // ジャイロセンサ 静止状態キャリブレーション(ゼロ点補正)
-  //  起動時の静止状態でのバイアスを算出(1ms間隔 1000回の平均値)
-  #define CALIB_SAMPLE_COUNT  (1000)
-
-  float angv[3];
-
-  for (int i = 0; i < CALIB_SAMPLE_COUNT; i++) {
-    hub_imu_get_angular_velocity(angv);
-
-    offset[0] += angv[0];
-    offset[1] += angv[1];
-    offset[2] += angv[2];
-    dly_tsk(1000); // 1ms
-  }
-
-  offset[0] /= CALIB_SAMPLE_COUNT;
-  offset[1] /= CALIB_SAMPLE_COUNT;
-  offset[2] /= CALIB_SAMPLE_COUNT;
 }
 
 static void get_color_code(void) {
@@ -303,8 +280,7 @@ static int wait_for_hub_buttons(hub_button_t button_candidates) {
   hub_button_t pressed_button;
   int button_command = 0;
 
-  if (!(button_candidates & HUB_BUTTON_BT) && force) {
-    // BTボタン判定以外 かつ Force センサ有効
+  if (force) {
     bool touched = pup_force_sensor_touched(force);
     pressed_button = touched ? HUB_BUTTON_CENTER : 0;
   } else {
@@ -370,7 +346,7 @@ void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     /*imu*/
     hub_imu_get_angular_velocity(hub_angular_velocity);
     for (int i = 0; i < 3; ++i) {
-      device_status.angular_velocity[i] = hub_angular_velocity[i] - angv_offset[i];
+      device_status.angular_velocity[i] = hub_angular_velocity[i];
     }
     hub_imu_get_acceleration(hub_angular_velocity);
     for (int i = 0; i < 3; ++i) {
@@ -664,8 +640,6 @@ void uros_task(intptr_t exinf) {
   }
 
   hub_imu_init();
-  calib_angv_offset(angv_offset);
-
   hub_speaker_set_volume(100);
 
   send_color_value_1 = 0;

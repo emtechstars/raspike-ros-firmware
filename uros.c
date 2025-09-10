@@ -41,6 +41,11 @@
 #include <std_msgs/msg/bool.h>                               //bool
 #include <std_msgs/msg/int8.h>                               //int8
 
+// ROS_DOMAIN_ID 指定
+  // 0 : ROS_DOMAIN_ID を使用しない
+  // 0以外 : ROS_DOMAIN_ID = 指定値
+#define EMSTARS_ROS_DOMAIN_ID       (0)
+
 #define RCCHECK(fn)                                                            \
   {                                                                            \
     rcl_ret_t temp_rc = fn;                                                    \
@@ -504,8 +509,17 @@ void uros_task(intptr_t exinf) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rclc_support_t support;
 
+#if EMSTARS_ROS_DOMAIN_ID
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_init_options_init(&init_options, allocator);
+  rcl_init_options_set_domain_id(&init_options, EMSTARS_ROS_DOMAIN_ID);
+
+  // Create init_options
+  RCCHECK(rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator));
+#else
   // Create init_options
   RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
+#endif
 
   // Create node
   rcl_node_t node;

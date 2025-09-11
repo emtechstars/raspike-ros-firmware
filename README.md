@@ -7,7 +7,7 @@ This repository was extracted from the original [raspike-ros](https://github.com
 ## Build and Update firmware
 
 ```bash
-git clone https://github.com/owhinata/raspike-ros-firmware.git
+git clone https://github.com/emtechstars/raspike-ros-firmware.git
 cd raspike-ros-firmware
 make -f setup_micro-ros.mk setup_micro-ros  # libmicroros.aのビルド
 make asp.dfu
